@@ -1,0 +1,26 @@
+# configs/default.yaml
+
+input: "/home/alswoghd/deepet_ws/day1/data/videos/sample_50noisy.mp4"
+output: "output_blended_tiles_full_dpsr_only.mp4"
+# roi: [256, 180, 768, 360]        # 특정 ROI를 사용하려면 이 줄의 주석을 해제
+roi: "full"                      # 전체 화면을 사용하려면 이 값을 "full"로 설정
+grid: [3, 4]                     # rows, cols
+tile_overlap: 4                 # 타일 겹침 픽셀 (블렌딩 영역)
+
+frame_step: 3
+lock_to_fps: true
+preview:
+  show_window: true
+  http_port: 8090
+kair:
+  repo: "/home/alswoghd/deepet_ws/KAIR"
+  dncnn_weights: "/home/alswoghd/deepet_ws/KAIR/model_zoo/dncnn_50.pth"
+  dpsr_weights:  "/home/alswoghd/deepet_ws/KAIR/model_zoo/dpsr_x2.pth"
+  dpsr_scale: 2
+  dpsr_noise_level: 0
+pipeline_mode: "dncnn+dpsr"      # "dncnn_only" | "dpsr_only" | "dncnn+dpsr"
+saver:
+  fourcc: "mp4v"
+  max_queue: 4096
+  drop_old_when_full: false
+workers: 1
