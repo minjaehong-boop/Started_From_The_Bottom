@@ -18,40 +18,29 @@ def _worker_batch(crop_q: Queue, done_q: Queue, stop_evt: Event, wid: int, mode:
             item = crop_q.get_nowait()
             batch_buffer.append(item)
         except:
-            # 큐가 비어있으면 잠시 쉬어 CPU 사용률을 낮춤
-            time.sleep(0.001)
+            pass
 
         time_since_last = time.perf_counter() - last_batch_time
-        
-        # ===== 배치 처리 조건 수정 =====
-        # 1. 배치가 꽉 찼거나
-        # 2. 타임아웃이 지났고 버퍼에 아이템이 있으면서, 입력 큐가 비어있어 더 기다릴 필요가 없을 때
+
         process_now = len(batch_buffer) >= batch_size or \
                       (len(batch_buffer) > 0 and time_since_last > batch_timeout and crop_q.empty())
 
         if process_now:
-            
-            # =============================================================
-            # ★★★★★ 에러 해결을 위한 핵심 수정 부분 ★★★★★
-            # 1. 기준 크기를 첫 번째 타일로 설정
             first_item_shape = batch_buffer[0][3].shape
             target_h, target_w = first_item_shape[0], first_item_shape[1]
 
             images_resized = []
             for item in batch_buffer:
-                img = item[3]
-                # 2. 타일 크기가 기준과 다르면 리사이즈
-                if img.shape[0] != target_h or img.shape[1] != target_w:
-                    img = cv2.resize(img, (target_w, target_h), interpolation=cv2.INTER_AREA)
+                img = item[3] #32회 돌아감
                 images_resized.append(img)
-            # =============================================================
 
-            # 3. 리사이즈된 이미지들로 안전하게 배치 생성
+            #배치 생성
             images = np.stack(images_resized)
             
             t_start = time.perf_counter()
             processed_images = pipeline.run(images)
             t_end = time.perf_counter()
+            print(" im hererererere")#-----------------------여기까지 안옴 파이프라인으로 들어가서 확인------------
             
             print(f"[{time.time():.2f}] [Worker-{wid}] {len(batch_buffer)}개 타일 배치 처리 완료 ({(t_end - t_start)*1000:.2f}ms)")
 
