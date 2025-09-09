@@ -23,17 +23,21 @@ class Pipeline_Batch:
             
             elif self.mode == "dpsr_only":
                 if self.dpsr:
+                    print("only dpsr")
                     sr_batch = self.dpsr(image_batch, noise_level=self.dpsr_noise)
                     return sr_batch
                 return image_batch
 
             else:
                 if self.dncnn and self.dpsr:
+                    #print("im in the point!!!!")#------------------모드 인식은 됨
                     denoised_batch = self.dncnn(image_batch)
+                    #print("complete denoiser")#-----------디노이저는 정상작동
                     sr_batch = self.dpsr(denoised_batch, noise_level=self.dpsr_noise)
-                    return sr_batch
+                    print("COMPLETE??")#------------------------여기까지 안옴2---------------> dpsr class에 문제가 있는 듯
+                    return sr_batch 
         except Exception as e:
-            print("exception happend!")
+            
             return image_batch
                 
 
