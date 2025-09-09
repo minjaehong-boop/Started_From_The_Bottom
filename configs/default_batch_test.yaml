@@ -1,0 +1,37 @@
+# configs/default_batch_test.yaml
+
+input: "/home/alswoghd/deepet_ws/after_score/testsets/videos/downscale/degraded_cloud.mp4"
+output: "output_batch_processing_test.mp4"
+#roi: [1370, 630, 1200, 900]  
+roi: "full"
+grid: [8, 4]                     # rows, cols
+tile_overlap: 0                 # 타일 겹침 픽셀 (블렌딩 영역)
+
+frame_step: 1
+lock_to_fps: true
+preview:
+  show_window: true
+  http_port: 8090
+kair:
+  repo: "/home/alswoghd/deepet_ws/KAIR"
+  dncnn_weights: "/home/alswoghd/deepet_ws/KAIR/model_zoo/dncnn_50.pth"
+  dpsr_weights:  "/home/alswoghd/deepet_ws/KAIR/model_zoo/dpsr_x2.pth"
+  dpsr_scale: 2
+  dpsr_noise_level: 0
+pipeline_mode: "dncnn_only"      # "dncnn_only" | "dpsr_only" | "dncnn+dpsr"
+saver:
+  fourcc: "mp4v"
+  max_queue: 4096
+  drop_old_when_full: false
+workers: 1                       # 배치 처리 시 워커는 1로 고정하는 것이 효율적입니다.
+
+# YOLOv8 Detection Settings
+yolo:
+  model_path: "yolov8n.pt"
+  confidence_threshold: 0.7
+  enabled: true
+
+# ===== 배치 처리 설정 (신규) =====
+batch_processing:
+  batch_size: 16  # 워커가 한 번에 처리할 타일 개수 (RTX 3090 VRAM에 맞춰 조정 가능)
+  batch_timeout: 1 # 이 시간(초) 동안 배치가 다 안 차면 그냥 처리 시작

@@ -113,7 +113,7 @@ def main(cfg_path: str):
         
         if latest_roi_patch is not None:
             enhanced_display[roi.y:roi.y+roi.h, roi.x:roi.x+roi.w] = latest_roi_patch
-
+    
         detections_original, detections_enhanced = [], []
         if detector:
             detections_original = detector.detect(original_display)

@@ -1,10 +1,10 @@
 # configs/default_test.yaml
 
-input: "/home/alswoghd/deepet_ws/after_score/testsets/videos/noisy/people_50noisy.mp4"
+input: "/home/alswoghd/deepet_ws/after_score/testsets/videos/downscale/degraded_cloud.mp4"
 output: "output_yolo_detection_test.mp4"
 roi: "full"                      # "full" 또는 [x, y, w, h]
-grid: [3, 4]                     # rows, cols
-tile_overlap: 32                 # 타일 겹침 픽셀 (블렌딩 영역)
+grid: [4, 4]                    # rows, cols
+tile_overlap:  0                 # 타일 겹침 픽셀 (블렌딩 영역)
 
 frame_step: 1
 lock_to_fps: true
@@ -13,7 +13,7 @@ preview:
   http_port: 8090
 kair:
   repo: "/home/alswoghd/deepet_ws/KAIR"
-  dncnn_weights: "/home/alswoghd/deepet_ws/KAIR/model_zoo/dncnn_50.pth"
+  dncnn_weights: "/home/alswoghd/deepet_ws/KAIR/model_zoo/dncnn_15.pth"
   dpsr_weights:  "/home/alswoghd/deepet_ws/KAIR/model_zoo/dpsr_x2.pth"
   dpsr_scale: 2
   dpsr_noise_level: 0
@@ -27,5 +27,5 @@ workers: 1
 # YOLOv8 Detection Settings
 yolo:
   model_path: "yolov8n.pt"        # 사용할 YOLOv8 모델 가중치 파일
-  confidence_threshold: 0.4       # 탐지 최소 신뢰도
+  confidence_threshold: 0.7      # 탐지 최소 신뢰도
   enabled: true                   # YOLO 탐지 기능 활성화 여부

@@ -104,7 +104,7 @@ def resolve_preset(args):
     elif args.preset == "heavy":
         cfg = dict(downscale=0.4,  blur=7, motion=11, motion_angle=25, noise_sigma=18, jpeg_q=20, gamma=1.2, brightness=-10., contrast=0.2, saturation=-0.1)
     else:  # custom
-        cfg = dict(downscale=0,  blur=0, motion=0, motion_angle=0, noise_sigma=50, jpeg_q=70, gamma=1.0, brightness=0.0, contrast=0.0, saturation=0.0)
+        cfg = dict(downscale=1,  blur=0, motion=0, motion_angle=0, noise_sigma=20, jpeg_q=70, gamma=1.0, brightness=0.0, contrast=0.0, saturation=0.0)
 
     # CLI 인자가 주어지면 덮어씀
     for k in list(cfg.keys()):
