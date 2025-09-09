@@ -6,6 +6,7 @@ import cv2
 import torch
 import numpy as np
 from importlib import import_module
+from typing import List
 
 class DPSRRestorer_Batch:
     def __init__(self, kair_repo: str, weights_path: str, scale: int = 2, use_cuda: bool = True):
@@ -23,8 +24,8 @@ class DPSRRestorer_Batch:
         MSRResNet_prior = getattr(netmod, "MSRResNet_prior")
 
         self.model = MSRResNet_prior(
-            in_nc=4, out_nc=3, nc=96, nb=16,
-            upscale=scale, act_mode='R', upsample_mode='pixelshuffle'
+            in_nc=4, out_nc=3, nc=96, nb=16, upscale=scale,
+            act_mode='R', upsample_mode='pixelshuffle'
         )
 
         print(f"[DPSRRestorer_Batch] Loading weights from: {weights_path}")
@@ -36,23 +37,37 @@ class DPSRRestorer_Batch:
         self.model = self.model.to(self.device)
         print("[DPSRRestorer_Batch] Model ready.")
 
-    def __call__(self, bgr_batch: np.ndarray, noise_level: float = 0.0) -> np.ndarray:
-        batch_size = bgr_batch.shape[0]
-        rgb_batch_float = bgr_batch[:, :, :, ::-1].astype(np.float32) / 255.0
-        rgb_tensor_batch = self.torch.from_numpy(rgb_batch_float.transpose(0, 3, 1, 2)).to(self.device)
+    def __call__(self, bgr_images: List[np.ndarray], noise_level: float = 0.0) -> List[np.ndarray]:
+        if not bgr_images:
+            return [] #---------여기엔 일단 안걸림
 
-        _, _, h, w = rgb_tensor_batch.size()
-        noise_map_batch = self.torch.full(
-            (batch_size, 1, h, w), noise_level / 255.0,
-            dtype=rgb_tensor_batch.dtype, device=self.device
+        rgb_tensors = []
+        for bgr_image in bgr_images:
+            rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
+            rgb_tensor = torch.from_numpy(rgb_image.astype(np.float32) / 255.0).permute(2, 0, 1).unsqueeze(0).to(self.device)
+            rgb_tensors.append(rgb_tensor)
+        
+        batch_rgb_tensor = torch.cat(rgb_tensors, dim=0)
+
+        batch_size, _, h, w = batch_rgb_tensor.size()
+        noise_map = torch.full(
+            (batch_size, 1, h, w),
+            noise_level / 255.0,
+            dtype=batch_rgb_tensor.dtype,
+            device=self.device
         )
 
-        model_input_batch = self.torch.cat([rgb_tensor_batch, noise_map_batch], dim=1)
+        model_input = torch.cat([batch_rgb_tensor, noise_map], dim=1)
 
-        with self.torch.no_grad():
-            sr_tensor_batch = self.model(model_input_batch)
+        with torch.no_grad():
+            sr_tensor_batch = self.model(model_input)
 
-        sr_rgb_batch_np = sr_tensor_batch.clamp(0, 1).cpu().numpy().transpose(0, 2, 3, 1)
-        sr_bgr_batch_uint8 = (sr_rgb_batch_np * 255.0 + 0.5).astype(np.uint8)
-        
-        return sr_bgr_batch_uint8[:, :, :, ::-1]
+        output_images = []
+        for sr_tensor in sr_tensor_batch.split(1, dim=0):
+            sr_rgb_np = sr_tensor.squeeze(0).clamp(0, 1).cpu().numpy().transpose(1, 2, 0)
+
+            sr_bgr_image = (sr_rgb_np * 255.0 + 0.5).astype(np.uint8)
+            sr_bgr_image = cv2.cvtColor(sr_bgr_image, cv2.COLOR_RGB2BGR)
+            output_images.append(sr_bgr_image)#리스트?
+
+        return output_images
